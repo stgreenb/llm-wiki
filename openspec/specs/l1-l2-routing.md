@@ -44,49 +44,69 @@ session starts and context bloat; too little in L1 = repeated mistakes.
 - REQ-323: Business intelligence and strategy SHALL be stored in L2.
 - REQ-324: Historical decisions and rationale SHALL be stored in L2.
 
+### Agent-Specific L1 Storage
+
+- REQ-330: Claude Code L1 SHALL be stored in a `memory/` directory at the
+  wiki project root, git-excluded via `.gitignore`.
+- REQ-331: OpenCode L1 SHALL be split:
+  - Shared rules in `AGENTS.md` (auto-loaded at session start, git-tracked)
+  - Sensitive rules (credentials, tokens) in `.opencode/instructions/`
+    (git-excluded via `.gitignore`)
+- REQ-332: L1 content for both agents SHALL be generated from shared
+  templates in `templates/l1/` — updating a template once updates both agents.
+
 ### Security Boundary
 
-- REQ-330: L1 memory directory MUST be git-excluded (typically at
+- REQ-340: L1 memory directory MUST be git-excluded (typically at
   `~/.claude/projects/*/memory/` which is not in the repo).
-- REQ-331: L2 wiki MUST be assumed git-tracked. All L2 content is potentially
+- REQ-341: L2 wiki MUST be assumed git-tracked. All L2 content is potentially
   visible in version control history.
-- REQ-332: The system SHALL treat the L1/L2 boundary as a hard security boundary
+- REQ-342: The system SHALL treat the L1/L2 boundary as a hard security boundary
   for credentials. There is no "soft" credential storage in L2.
 
 ### L1 Size Management
 
-- REQ-340: L1 SHOULD contain 10-20 files (optimal range).
-- REQ-341: If L1 exceeds approximately 30 files, the system SHOULD recommend an
+- REQ-350: L1 SHOULD contain 10-20 files (optimal range).
+- REQ-351: If L1 exceeds approximately 30 files, the system SHOULD recommend an
   audit to move contextual knowledge to L2.
-- REQ-342: Each L1 file SHOULD cover one topic and be concise (a few lines, not
+- REQ-352: Each L1 file SHOULD cover one topic and be concise (a few lines, not
   pages of detail).
 
 ### Boundary Evolution
 
-- REQ-350: Knowledge MAY be promoted from L2 to L1 when the same mistake is
+- REQ-360: Knowledge MAY be promoted from L2 to L1 when the same mistake is
   repeated across multiple sessions (pattern: operational gotcha discovered the
   hard way).
-- REQ-351: Knowledge MAY be demoted from L1 to L2 when it becomes historical
+- REQ-361: Knowledge MAY be demoted from L1 to L2 when it becomes historical
   context rather than an active operational rule (pattern: project completes,
   credentials rotated).
-- REQ-352: Multiple related L1 files SHOULD be merged when they cover the same
+- REQ-362: Multiple related L1 files SHOULD be merged when they cover the same
   system or topic, to keep L1 lean.
-- REQ-353: The `/wiki lint` command SHOULD flag L1 files not referenced in 90+
-  days as candidates for L2 demotion or deletion.
-- REQ-354: The `/wiki lint` command SHOULD flag L2 pages queried in every session
-  as candidates for L1 promotion.
+- REQ-363: The `/wiki lint` or `wiki-lint` command SHOULD flag L1 files not
+  referenced in 90+ days as candidates for L2 demotion or deletion.
+- REQ-364: The `/wiki lint` or `wiki-lint` command SHOULD flag L2 pages queried
+  in every session as candidates for L1 promotion.
+
+### L1/L2 Duplicate Detection (Lint)
+
+- REQ-370: The lint command SHALL flag content that appears verbatim in both
+  L1 and a Wiki page.
+- REQ-371: A near-match (e.g., "max 2 SSH calls" vs "max 2-3 SSH calls") SHALL
+  NOT be flagged — only exact string matches.
+- REQ-372: When a duplicate is found, the lint SHALL report the page path and
+  suggest removing the duplicate from L1.
 
 ### Routing During Ingest
 
-- REQ-360: During /wiki ingest Phase 1, the system SHALL apply the routing rule
+- REQ-380: During /wiki ingest Phase 1, the system SHALL apply the routing rule
   (REQ-300-304) to each extracted fact.
-- REQ-361: Facts routed to L1 SHALL NOT be written to wiki pages. The system SHALL
+- REQ-381: Facts routed to L1 SHALL NOT be written to wiki pages. The system SHALL
   instead recommend saving them to the memory directory.
-- REQ-362: Facts routed to L2 SHALL proceed through the normal ingest pipeline
+- REQ-382: Facts routed to L2 SHALL proceed through the normal ingest pipeline
   (Phases 2-5).
-- REQ-363: If a source contains both L1 and L2 facts, the system SHALL process
+- REQ-383: If a source contains both L1 and L2 facts, the system SHALL process
   L2 facts via ingest AND separately recommend L1 facts for memory storage.
-- REQ-364: The system SHOULD present the routing recommendation to the user before
+- REQ-384: The system SHOULD present the routing recommendation to the user before
   writing, especially for ambiguous cases (severity:: important facts that could
   go either way).
 
