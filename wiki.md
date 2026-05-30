@@ -1,10 +1,12 @@
 # /wiki - LLM Wiki
 
-Persistent knowledge management powered by Claude Code. Maintains a structured wiki in Logseq or Obsidian using the L1/L2 cache architecture.
+Persistent knowledge management powered by AI agents. Maintains a structured wiki in Logseq or Obsidian using the L1/L2 cache architecture.
 
 **Architecture: L1/L2 Cache Model**
-- L1 = Claude Memory (auto-loaded): Rules, gotchas, identity, credentials
+- L1 = Agent Memory (auto-loaded): Rules, gotchas, identity, credentials
 - L2 = Wiki (on-demand): Projects, workflows, research, deep knowledge
+
+<!-- LINE BUDGET: This file should stay under 300 lines. If it exceeds that, extract shared logic into skills. -->
 
 ## Arguments
 
@@ -31,6 +33,7 @@ Read `llm-wiki.yml` from the wiki root directory FIRST to determine:
 - `pages_dir`: where pages live (relative to wiki_path)
 - `memory_path`: L1 memory directory
 - `namespaces`: configured top-level namespaces
+- `agents`: which agents are configured (claude, opencode, or both)
 
 ## Tool-Specific Format Rules
 
@@ -56,8 +59,8 @@ Read `llm-wiki.yml` from the wiki root directory FIRST to determine:
 - ISO 8601 dates (YYYY-MM-DD)
 
 ## L1/L2 Boundary
-- L1 (Memory, auto-loaded): Rules, gotchas, identity, credentials — things Claude must know EVERY session
-- L2 (Wiki, on-demand): Projects, workflows, research — queried via /wiki when needed
+- L1 (Memory, auto-loaded): Rules, gotchas, identity, credentials — things the agent must know EVERY session
+- L2 (Wiki, on-demand): Projects, workflows, research — queried via wiki when needed
 - Routing rule: "Would a mistake without this knowledge be dangerous/embarrassing? -> L1. Merely inconvenient? -> L2."
 - Credentials MUST stay in L1 (wiki is git-tracked!)
 </context>

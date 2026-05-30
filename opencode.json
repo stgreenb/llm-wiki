@@ -1,0 +1,20 @@
+{
+  "command": {
+    "wiki-ingest": {
+      "prompt": "Read @wiki.md and execute the ingest workflow.\nSource: $0"
+    },
+    "wiki-query": {
+      "prompt": "Read @wiki.md and execute the query workflow.\nQuestion: $0"
+    },
+    "wiki-lint": {
+      "prompt": "Read @wiki.md and execute the lint workflow.\nArgs: $0"
+    },
+    "wiki-status": {
+      "prompt": "Read @wiki.md and execute the status workflow."
+    },
+    "wiki-ingest-bg": {
+      "prompt": "Read @wiki.md and execute the ingest workflow.\nSource: $0",
+      "subtask": true
+    }
+  }
+}

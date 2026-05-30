@@ -11,3 +11,9 @@ namespaces:
   - People
   - Learning
   - Reference
+
+# Agents configured for this wiki (auto-detected by setup.sh)
+# Possible values: claude, opencode
+agents:
+  - claude
+  - opencode
