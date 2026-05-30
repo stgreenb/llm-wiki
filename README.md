@@ -22,10 +22,14 @@ cd llm-wiki
 
 ### Command Differences
 
+Both agents use slash commands in their TUI. The naming convention differs — Claude Code uses a subcommand pattern (`/wiki ingest`), while OpenCode uses hyphenated command names (`/wiki-ingest`).
+
 | Agent | Ingest | Query | Lint | Status |
 |-------|--------|-------|------|--------|
 | **Claude Code** | `/wiki ingest <src>` | `/wiki query <q>` | `/wiki lint` | `/wiki status` |
-| **OpenCode** | `opencode run wiki-ingest <src>` | `opencode run wiki-query <q>` | `opencode run wiki-lint` | `opencode run wiki-status` |
+| **OpenCode** | `/wiki-ingest <src>` | `/wiki-query <q>` | `/wiki-lint` | `/wiki-status` |
+
+In OpenCode's CLI (`opencode run`), use `--command` flag: `opencode run --command wiki-ingest "source"`.
 
 ## Switching Agents
 
