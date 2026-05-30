@@ -400,11 +400,11 @@ if [[ " ${SELECTED_AGENTS[*]} " =~ "opencode" ]]; then
 import json, sys
 config_path = '$OC_CONFIG'
 wiki_commands = {
-    'wiki-ingest': {'prompt': 'Read @wiki.md and execute the ingest workflow.\nSource: \$0'},
-    'wiki-query': {'prompt': 'Read @wiki.md and execute the query workflow.\nQuestion: \$0'},
-    'wiki-lint': {'prompt': 'Read @wiki.md and execute the lint workflow.\nArgs: \$0'},
-    'wiki-status': {'prompt': 'Read @wiki.md and execute the status workflow.'},
-    'wiki-ingest-bg': {'prompt': 'Read @wiki.md and execute the ingest workflow.\nSource: \$0', 'subtask': True}
+    'wiki-ingest': {'template': 'Read @wiki.md and execute the ingest workflow.\nSource: \$0', 'description': 'Ingest a source (URL/file/text) into the wiki'},
+    'wiki-query': {'template': 'Read @wiki.md and execute the query workflow.\nQuestion: \$0', 'description': 'Search the wiki and synthesize an answer'},
+    'wiki-lint': {'template': 'Read @wiki.md and execute the lint workflow.\nArgs: \$0', 'description': 'Health check: orphans, stale, broken refs, credential leaks'},
+    'wiki-status': {'template': 'Read @wiki.md and execute the status workflow.', 'description': 'Wiki metrics and health overview'},
+    'wiki-ingest-bg': {'template': 'Read @wiki.md and execute the ingest workflow.\nSource: \$0', 'description': 'Heavy ingest in sub-agent (preserves conversation)', 'subtask': True}
 }
 try:
     with open(config_path) as f:
@@ -424,19 +424,24 @@ print('Merged wiki commands into opencode.json')
 {
   "command": {
     "wiki-ingest": {
-      "prompt": "Read @wiki.md and execute the ingest workflow.\nSource: $0"
+      "template": "Read @wiki.md and execute the ingest workflow.\nSource: $0",
+      "description": "Ingest a source (URL/file/text) into the wiki"
     },
     "wiki-query": {
-      "prompt": "Read @wiki.md and execute the query workflow.\nQuestion: $0"
+      "template": "Read @wiki.md and execute the query workflow.\nQuestion: $0",
+      "description": "Search the wiki and synthesize an answer"
     },
     "wiki-lint": {
-      "prompt": "Read @wiki.md and execute the lint workflow.\nArgs: $0"
+      "template": "Read @wiki.md and execute the lint workflow.\nArgs: $0",
+      "description": "Health check: orphans, stale, broken refs, credential leaks"
     },
     "wiki-status": {
-      "prompt": "Read @wiki.md and execute the status workflow."
+      "template": "Read @wiki.md and execute the status workflow.",
+      "description": "Wiki metrics and health overview"
     },
     "wiki-ingest-bg": {
-      "prompt": "Read @wiki.md and execute the ingest workflow.\nSource: $0",
+      "template": "Read @wiki.md and execute the ingest workflow.\nSource: $0",
+      "description": "Heavy ingest in sub-agent (preserves conversation)",
       "subtask": true
     }
   }
