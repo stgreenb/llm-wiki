@@ -1,6 +1,6 @@
 ---
-wiki-version: "1.0"
-last-updated: "{{DATE}}"
+wiki-version: "1.1"
+last-updated: "2026-05-30"
 maintained-by: llm-wiki
 type: schema
 ---
@@ -9,25 +9,46 @@ type: schema
 
 ## Namespace Conventions
 
-- Top-Level: {{NAMESPACES}}
-- Page Naming: Title Case, hyphens for multi-word (`Wiki/Projects/My-Project`)
-- Max Depth: 3 levels (e.g., `Wiki/Business/Clients/ClientName`)
+- Top-Level: Wiki/Meetings | Wiki/Actions | Wiki/Projects | Wiki/People | Wiki/Reference | Wiki/Decisions
+- Page Naming: Title Case, hyphens for multi-word (`Wiki/Projects/Project-Cobra`)
+- Max Depth: 3 levels (e.g., `Wiki/Meetings/2026-05/2026-05-30-Alpha-Sync`)
 - Hub Pages: Every namespace level has a hub page listing its children
-- Folder Hierarchy: Namespaces map to folders (e.g., `Wiki/Tech/Docker.md`)
+- Folder Hierarchy: Namespaces map to folders (e.g., `Wiki/Actions/Project-Cobra.md`)
 
 ## Page Types and Required Properties
 
-### Entity (Person, Client, Tool, Service, Technology)
-
-Required YAML frontmatter:
+### Meeting
 
 ```yaml
-type: entity
-entity-type: person | client | tool | service | technology
+type: meeting
+date: YYYY-MM-DD
+attendees:
+  - "[[Wiki/People/FirstName-LastName]]"
+projects:
+  - "[[Wiki/Projects/ProjectName]]"  # one or more related projects
+status: raw | processed | archived
+source: ingest | manual
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-status: active | inactive | archived
-source: memory-migration | ingest | manual
+```
+
+### Action (one page per project's action register)
+
+```yaml
+type: action-register
+project: "[[Wiki/Projects/ProjectName]]"
+updated: YYYY-MM-DD
+```
+
+Action items live as list items within the page, each with these inline properties:
+
+```yaml
+action-id: ACT-YYYYMMDD-NNN  # auto-generated sequential ID
+owner: "[[Wiki/People/FirstName-LastName]]"
+due: YYYY-MM-DD  # or blank if not set
+priority: high | medium | low
+status: open | in-progress | done | blocked | deferred
+source: "[[Wiki/Meetings/YYYY-MM-DD-MeetingName]]"  # originating meeting
 ```
 
 ### Project
@@ -35,30 +56,61 @@ source: memory-migration | ingest | manual
 ```yaml
 type: project
 status: active | completed | on-hold | cancelled
+pm: "[[Wiki/People/FirstName-LastName]]"
+stakeholders:
+  - "[[Wiki/People/Name]]"
+tracker: url or "internal"  # link to Jira/Linear/GitHub Issues if applicable
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 started: YYYY-MM-DD
 completed: YYYY-MM-DD  # if applicable
 ```
 
-### Knowledge (Learning, Reference)
+### Person
+
+```yaml
+type: entity
+entity-type: person
+role: "Engineering Lead"  # job title or role in context
+org: "Company or Team"
+status: active | inactive | archived
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+```
+
+### Decision
+
+```yaml
+type: decision
+date: YYYY-MM-DD
+status: proposed | accepted | rejected | superseded
+decided-by:
+  - "[[Wiki/People/Name]]"
+affects:
+  - "[[Wiki/Projects/Name]]"
+supersedes: "[[Wiki/Decisions/OldDecision]]"  # if applicable
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+```
+
+### Knowledge (Reference, How-To, Process)
 
 ```yaml
 type: knowledge
-domain: tech | business | content | ops
+domain: process | ops | tech | business | comms
+confidence: high | medium | low | stale
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-confidence: high | medium | low | stale
 ```
 
-### Feedback (Lessons Learned, Gotchas)
+### Feedback (Lessons Learned, Gotchas, Retros)
 
 ```yaml
 type: feedback
 severity: critical | important | nice-to-know
 created: YYYY-MM-DD
 verified: YYYY-MM-DD
-applies-to: []  # page references to affected systems
+applies-to: []  # page references to affected projects or processes
 ```
 
 ### Hub (Namespace Index)
@@ -68,69 +120,86 @@ type: hub
 namespace: Wiki/NamespaceName
 ```
 
+## Meeting Ingest Workflow
+
+1. Parse raw notes --> extract: decisions, action items, attendees, key discussion points
+2. Create `Wiki/Meetings/YYYY-MM-DD-MeetingName.md` with `status: raw`
+3. For each action item found: append to the relevant `Wiki/Actions/ProjectName.md` register
+   - Assign `action-id: ACT-YYYYMMDD-NNN` (sequential per ingest)
+   - Set `status: open`, populate `owner` and `due` if mentioned in notes
+4. For each decision found: create or update `Wiki/Decisions/DecisionSlug.md`
+5. Update relevant `Wiki/Projects/ProjectName.md` with any status changes
+6. Set `status: processed` on the meeting page
+7. Update all hub pages touched
+8. Target: 5–15 page touches per ingest
+
+## Action Register Rules
+
+- ONE register page per project (e.g., `Wiki/Actions/Project-Cobra.md`)
+- Append new items; NEVER delete or overwrite existing entries
+- When status changes (done/blocked/deferred), update the status field in-place
+- Closed actions (done/deferred/cancelled): move to a `## Closed Actions` section at bottom
+- `updated` on the register page must reflect the date of last status change
+- The register page MUST link back to its project: `project: "[[Wiki/Projects/ProjectName]]"`
+
 ## Cross-Reference Rules
 
-- Every wiki page MUST have at least one `[[Wiki/...]]` link to another wiki page
+- Every meeting page MUST link to at least one project and at least one person
+- Every action item MUST have an owner (use `[[Wiki/People/Unknown]]` if truly unassigned)
+- Every decision page MUST link to the meeting where it was made via `source`
 - Hub pages MUST list ALL child pages in their namespace
-- When a page mentions an entity that has its own page, use `[[Wiki/Entity/Name]]` link syntax
-- Tags: use `#tag` for lightweight categorization (e.g., `#docker`, `#deploy`, `#critical`)
-- External links: `[Text](URL)` for URLs outside the wiki
+- When a page mentions an entity that has its own page, use `[[Wiki/...]]` link syntax
+- Tags: use `#action`, `#decision`, `#blocker`, `#critical` for lightweight cross-cutting concerns
 
 ## Content Format Rules
 
 - Flat Markdown (no outliner `- ` prefix required on every line)
 - Properties: YAML frontmatter between `---` fences at the top of the file
 - Sections: standard `## Heading` syntax
-- Code blocks: fenced with triple backticks
-- NEVER store credentials, passwords, or API tokens in wiki pages
+- Dates: ISO 8601 (YYYY-MM-DD) everywhere
+- NEVER store credentials, passwords, API tokens, or salary/HR data in wiki pages
 
-## L1/L2 Architecture
+## L1/L2 Architecture (see routing.md for full rules)
 
-### L1 = Claude Memory (auto-loaded every session)
+### L1 = Agent Memory (auto-loaded every session)
 
-- Feedback rules and quick gotchas
-- User identity (name, preferences)
-- Credentials (MUST NEVER go into the wiki)
-- Everything Claude needs to know at the START of every session
+- Standing meeting cadences and recurring attendees
+- Preferred formats (e.g., "Alice prefers action items to go to Slack, not email")
+- Project tracker URLs (Jira boards, Notion pages)
+- Name/alias mappings ("JD" = [[Wiki/People/Jane-Doe]])
+- Critical blockers that affect every session ("Project Cobra is on hold until June")
 
-### L2 = Wiki (on-demand via `/wiki query`)
+### L2 = Wiki (on-demand via wiki query)
 
-- Projects and their details
-- Workflows and processes
-- Research and learning notes
-- Deep technical knowledge
-- Business intelligence and strategy
+- All meeting notes and history
+- Full action registers per project
+- Project context, timelines, stakeholders
+- Decisions and their rationale
+- Reference processes and how-tos
 
-### Boundary Rules
+### Boundary Test
 
-- New quick rule or gotcha discovered? --> Save to Claude Memory (L1)
-- New project, workflow, or research? --> Save to Wiki (L2)
-- Same info in L1 AND L2? --> Warning on `/wiki lint`
-
-## Ingest Workflow
-
-1. Analyze new source --> extract entities, facts, relationships
-2. Identify affected wiki pages (existing + new)
-3. Target: 5-15 page touches per ingest
-4. Create new pages with all required properties
-5. Existing pages: APPEND, never overwrite
-6. Update hub pages
-7. Add cross-references
-8. Set `updated` property on all changed pages
+- "Would the agent make a bad call without this?" --> L1
+- "Is this historical record or detail?" --> L2
+- Same info in both? --> Warning on `/wiki lint` or `wiki-lint`
 
 ## Lint Rules
 
-- **Orphan Detection**: Pages with 0 incoming [[links]] (hub pages excluded)
-- **Stale Detection**: `updated` > 90 days old AND `confidence: high`
+- **Orphan Actions**: Action items with `status: open` and no `due` set (warn after 14 days)
+- **Unowned Actions**: Any action item with no `owner` or `owner: [[Wiki/People/Unknown]]`
+- **Stale Detection**: `updated` > 90 days AND `confidence: high` on knowledge pages
+- **Raw Meetings**: Meeting pages with `status: raw` older than 48 hours (not yet processed)
 - **Missing Properties**: Pages missing type-specific required properties
 - **Broken References**: [[links]] to non-existent pages
 - **Hub Completeness**: Hub pages missing children in their namespace
-- **Credential Leak**: Scan for token/password/secret patterns
-- **Empty Pages**: Only properties, no content
-- **Cross-Ref Minimum**: Pages with fewer than 1 outgoing [[link]]
-- **L1/L2 Duplicates**: Same info in Memory AND Wiki
+- **Credential Leak**: Scan for token/password/secret/API key patterns
+- **Empty Action Registers**: Action register page exists but has no open items and no closed section
+- **Orphan Decisions**: Decision pages not linked from any meeting page
+- **L1/L2 Duplicates**: Same operational rule in Memory AND Wiki
 
 ## Conventions
 
-- Language: English (customize per project)
+- Language: English
 - Dates: ISO 8601 (YYYY-MM-DD)
+- Action IDs: ACT-YYYYMMDD-NNN (e.g., ACT-20260530-001)
+- Person page names: FirstName-LastName (e.g., Wiki/People/Jane-Doe)

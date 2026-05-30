@@ -27,16 +27,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `setup.sh`: Full rewrite — added agent detection, dual-scaffold (Claude Code + OpenCode), interactive agent selection, L1 template scaffolding, and git-excluded memory directories for both agents
 - `AGENTS.md`: Now sources L1 content from `templates/l1/` shared templates; references `.opencode/instructions/` for git-excluded rules; simplified command table
 - `.gitignore`: Added `memory/` and `.opencode/instructions/` for git-excluded L1 storage
-
-### Fixed
-
-- `setup.sh`: Agent diagnostics now write to stderr (`>&2`) so captured status variables contain clean "found"/"not_found" strings
-- `opencode.json`: Uses `template` key (correct OpenCode schema) instead of `prompt`; added `description` to all commands
-
-### Security
-
-- Credential security boundary documented in both AGENTS.md and shared `templates/l1/security.md`
-- Sensitive L1 rules explicitly scoped to git-excluded directories: `memory/` (Claude) and `.opencode/instructions/` (OpenCode)
+- **Wiki schema reworked** for meeting-notes and action-register workflows (Logseq + Obsidian):
+  - Namespaces: Wiki/Meetings, Wiki/Actions, Wiki/Projects, Wiki/People, Wiki/Reference, Wiki/Decisions
+  - New page types: Meeting, Action register, Person, Decision
+  - Meeting Ingest Workflow: parse notes → extract actions/decisions → update registers
+  - Action Register Rules: ONE register per project, append-only, status transitions, closed section
+  - Cross-reference rules tightened per page type (meetings must link projects + people, actions must have owners)
+  - Lint rules expanded: Orphan Actions, Unowned Actions, Raw Meetings, Empty Action Registers, Orphan Decisions
+  - `templates/l1/routing.md` rewritten: meeting-focused L1/L2 routing, alias mappings, cadences, blocker flags, tracker URLs, standing preferences, sprint context, routing decision table, hygiene rules, ingest checklist
 
 ## [1.1.1] - 2026-04-18
 
