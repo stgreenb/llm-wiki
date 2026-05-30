@@ -1,92 +1,140 @@
-- wiki-version:: 1.0
-- last-updated:: {{DATE}}
+- wiki-version:: 1.1
+- last-updated:: 2026-05-30
 - maintained-by:: llm-wiki
 - type:: schema
 - ## Namespace Conventions
-	- Top-Level: {{NAMESPACES}}
-	- Page Naming: Title Case, hyphens for multi-word (`Wiki/Projects/My-Project`)
-	- Max Depth: 3 levels (e.g., `Wiki/Business/Clients/ClientName`)
+	- Top-Level: Wiki/Meetings | Wiki/Actions | Wiki/Projects | Wiki/People | Wiki/Reference | Wiki/Decisions
+	- Page Naming: Title Case, hyphens for multi-word (`Wiki/Projects/Project-Cobra`)
+	- Max Depth: 3 levels (e.g., `Wiki/Meetings/2026-05/2026-05-30-Alpha-Sync`)
 	- Hub Pages: Every namespace level has a hub page listing its children
-	- File Names: `___` (triple underscore) as namespace separator (e.g., `Wiki___Tech___Docker.md`)
+	- File Names: `___` (triple underscore) as namespace separator (e.g., `Wiki___Actions___Project-Cobra.md`)
 - ## Page Types and Required Properties
-	- ### Entity (Person, Client, Tool, Service, Technology)
-		- type:: entity
-		- entity-type:: person | client | tool | service | technology
+	- ### Meeting
+		- type:: meeting
+		- date:: YYYY-MM-DD
+		- attendees:: [[Wiki/People/FirstName-LastName]], ...
+		- projects:: [[Wiki/Projects/ProjectName]], ... (one or more related projects)
+		- status:: raw | processed | archived
+		- source:: ingest | manual
 		- created:: YYYY-MM-DD
 		- updated:: YYYY-MM-DD
-		- status:: active | inactive | archived
-		- source:: memory-migration | ingest | manual
+	- ### Action (individual action item — one page per project's action register)
+		- type:: action-register
+		- project:: [[Wiki/Projects/ProjectName]]
+		- updated:: YYYY-MM-DD
+		- (Action items live as child blocks, each with the sub-properties below)
+		- #### Action Item Block Properties (inline, under the action register page)
+			- action-id:: ACT-YYYYMMDD-NNN (auto-generated sequential ID)
+			- owner:: [[Wiki/People/FirstName-LastName]]
+			- due:: YYYY-MM-DD (or blank if not set)
+			- priority:: high | medium | low
+			- status:: open | in-progress | done | blocked | deferred
+			- source:: [[Wiki/Meetings/YYYY-MM-DD-MeetingName]] (the meeting that created this item)
 	- ### Project
 		- type:: project
 		- status:: active | completed | on-hold | cancelled
+		- pm:: [[Wiki/People/FirstName-LastName]]
+		- stakeholders:: [[Wiki/People/Name]], ...
+		- tracker:: url or "internal" (link to Jira/Linear/GitHub Issues if applicable)
 		- created:: YYYY-MM-DD
 		- updated:: YYYY-MM-DD
 		- started:: YYYY-MM-DD
 		- completed:: YYYY-MM-DD (if applicable)
-	- ### Knowledge (Learning, Reference)
-		- type:: knowledge
-		- domain:: tech | business | content | ops
+	- ### Person
+		- type:: entity
+		- entity-type:: person
+		- role:: (job title or role in context, e.g. "Engineering Lead", "Client PM")
+		- org:: (company or team)
+		- status:: active | inactive | archived
 		- created:: YYYY-MM-DD
 		- updated:: YYYY-MM-DD
+	- ### Decision
+		- type:: decision
+		- date:: YYYY-MM-DD
+		- status:: proposed | accepted | rejected | superseded
+		- decided-by:: [[Wiki/People/Name]], ...
+		- affects:: [[Wiki/Projects/Name]], ...
+		- supersedes:: [[Wiki/Decisions/OldDecision]] (if applicable)
+		- created:: YYYY-MM-DD
+		- updated:: YYYY-MM-DD
+	- ### Knowledge (Reference, How-To, Process)
+		- type:: knowledge
+		- domain:: process | ops | tech | business | comms
 		- confidence:: high | medium | low | stale
-	- ### Feedback (Lessons Learned, Gotchas)
+		- created:: YYYY-MM-DD
+		- updated:: YYYY-MM-DD
+	- ### Feedback (Lessons Learned, Gotchas, Retros)
 		- type:: feedback
 		- severity:: critical | important | nice-to-know
 		- created:: YYYY-MM-DD
 		- verified:: YYYY-MM-DD
-		- applies-to:: (page references to affected systems)
+		- applies-to:: (page references to affected projects or processes)
 	- ### Hub (Namespace Index)
 		- type:: hub
 		- namespace:: (the namespace this hub page indexes)
+- ## Meeting Ingest Workflow
+	- Parse raw notes --> extract: decisions, action items, attendees, key discussion points
+	- Create `Wiki/Meetings/YYYY-MM-DD-MeetingName.md` with status:: raw
+	- For each action item found: append to the relevant `Wiki/Actions/ProjectName.md` register
+		- Assign action-id:: ACT-YYYYMMDD-NNN (sequential per ingest)
+		- Set status:: open, populate owner:: and due:: if mentioned in notes
+	- For each decision found: create or update `Wiki/Decisions/DecisionSlug.md`
+	- Update relevant `Wiki/Projects/ProjectName.md` with any status changes
+	- Set status:: processed on the meeting page
+	- Update all hub pages touched
+	- Target: 5–15 page touches per ingest
+- ## Action Register Rules
+	- ONE register page per project (e.g., `Wiki/Actions/Project-Cobra.md`)
+	- Append new items; NEVER delete or overwrite existing entries
+	- When status changes (done/blocked/deferred), update the status:: sub-property in-place
+	- Closed actions (done/deferred/cancelled): move to `### Closed Actions` section at bottom
+	- `updated::` on the register page must reflect the date of last status change
+	- The register page MUST link back to its project: `project:: [[Wiki/Projects/ProjectName]]`
 - ## Cross-Reference Rules
-	- Every wiki page MUST have at least one `[[Wiki/...]]` link to another wiki page
+	- Every meeting page MUST link to at least one project and at least one person
+	- Every action item MUST have an owner:: (use [[Wiki/People/Unknown]] if truly unassigned)
+	- Every decision page MUST link to the meeting where it was made via source::
 	- Hub pages MUST list ALL child pages in their namespace
-	- When a page mentions an entity that has its own page, use `[[Wiki/Entity/Name]]` link syntax
-	- Bidirectional links are automatic in Logseq (backlinks panel)
-	- Tags: `#tag` for lightweight categorization (e.g., `#docker`, `#deploy`, `#critical`)
-	- External links: `[Text](URL)` for URLs outside the wiki
+	- When a page mentions an entity that has its own page, use `[[Wiki/...]]` link syntax
+	- Tags: `#action`, `#decision`, `#blocker`, `#critical` for lightweight cross-cutting concerns
 - ## Content Format Rules
 	- Every line is a Logseq block (starts with `- `)
 	- Properties: `property:: value` syntax (NO YAML frontmatter)
 	- Page properties go on the first blocks of the page
 	- Sections: `## Heading` syntax inside a block: `- ## Section Name`
-	- Code blocks: fenced with triple backticks inside a block
-	- NEVER store credentials, passwords, or API tokens in wiki pages
-- ## L1/L2 Architecture
+	- Dates: ISO 8601 (YYYY-MM-DD) everywhere
+	- NEVER store credentials, passwords, API tokens, or salary/HR data in wiki pages
+- ## L1/L2 Architecture (see routing.md for full rules)
 	- ### L1 = Claude Memory (auto-loaded every session)
-		- Feedback rules and quick gotchas
-		- User identity (name, preferences)
-		- Credentials (MUST NEVER go into the wiki)
-		- Everything Claude needs to know at the START of every session
+		- Standing meeting cadences and recurring attendees
+		- Preferred formats (e.g., "Alice prefers action items to go to Slack, not email")
+		- Project tracker URLs (Jira boards, Notion pages)
+		- Name/alias mappings ("JD" = [[Wiki/People/Jane-Doe]])
+		- Critical blockers that affect every session ("Project Cobra is on hold until June")
 	- ### L2 = Wiki (on-demand via `/wiki query`)
-		- Projects and their details
-		- Workflows and processes
-		- Research and learning notes
-		- Deep technical knowledge
-		- Business intelligence and strategy
-	- ### Boundary Rules
-		- New quick rule or gotcha discovered? --> Save to Claude Memory (L1)
-		- New project, workflow, or research? --> Save to Wiki (L2)
-		- Same info in L1 AND L2? --> Warning on `/wiki lint`
-- ## Ingest Workflow
-	- Analyze new source --> extract entities, facts, relationships
-	- Identify affected wiki pages (existing + new)
-	- Target: 5-15 page touches per ingest
-	- Create new pages with all required properties
-	- Existing pages: APPEND, never overwrite
-	- Update hub pages
-	- Add cross-references
-	- Set `updated::` property on all changed pages
+		- All meeting notes and history
+		- Full action registers per project
+		- Project context, timelines, stakeholders
+		- Decisions and their rationale
+		- Reference processes and how-tos
+	- ### Boundary Test
+		- "Would the LLM make a bad call without this?" --> L1
+		- "Is this historical record or detail?" --> L2
+		- Same info in both? --> Warning on `/wiki lint`
 - ## Lint Rules
-	- **Orphan Detection**: Pages with 0 incoming [[links]] (hub pages excluded)
-	- **Stale Detection**: `updated::` > 90 days old AND `confidence:: high`
+	- **Orphan Actions**: Action items with status:: open and no due:: set (warn after 14 days)
+	- **Unowned Actions**: Any action item with no owner:: or owner:: [[Wiki/People/Unknown]]
+	- **Stale Detection**: `updated::` > 90 days AND `confidence:: high` on knowledge pages
+	- **Raw Meetings**: Meeting pages with status:: raw older than 48 hours (not yet processed)
 	- **Missing Properties**: Pages missing type-specific required properties
 	- **Broken References**: [[links]] to non-existent pages
 	- **Hub Completeness**: Hub pages missing children in their namespace
-	- **Credential Leak**: Scan for token/password/secret patterns
-	- **Empty Pages**: Only properties, no content
-	- **Cross-Ref Minimum**: Pages with fewer than 1 outgoing [[link]]
-	- **L1/L2 Duplicates**: Same info in Memory AND Wiki
+	- **Credential Leak**: Scan for token/password/secret/API key patterns
+	- **Empty Action Registers**: Action register page exists but has no open items and no closed section
+	- **Orphan Decisions**: Decision pages not linked from any meeting page
+	- **L1/L2 Duplicates**: Same operational rule in Memory AND Wiki
 - ## Conventions
-	- Language: English (customize per project)
+	- Language: English
 	- Dates: ISO 8601 (YYYY-MM-DD)
+	- Action IDs: ACT-YYYYMMDD-NNN (e.g., ACT-20260530-001)
+	- Person page names: FirstName-LastName (e.g., Wiki/People/Jane-Doe)
