@@ -1,6 +1,6 @@
 ---
 wiki-version: "1.1"
-last-updated: "2026-05-30"
+last-updated: "{{DATE}}"
 maintained-by: llm-wiki
 type: schema
 ---
@@ -9,7 +9,7 @@ type: schema
 
 ## Namespace Conventions
 
-- Top-Level: Wiki/Meetings | Wiki/Actions | Wiki/Projects | Wiki/People | Wiki/Reference | Wiki/Decisions
+- Top-Level: {{NAMESPACES}}
 - Page Naming: Title Case, hyphens for multi-word (`Wiki/Projects/Project-Cobra`)
 - Max Depth: 3 levels (e.g., `Wiki/Meetings/2026-05/2026-05-30-Alpha-Sync`)
 - Hub Pages: Every namespace level has a hub page listing its children

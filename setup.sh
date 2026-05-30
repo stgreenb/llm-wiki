@@ -13,7 +13,20 @@ check_command() {
     fi
 }
 
-check_command python3
+check_python() {
+    if command -v python3 &> /dev/null && python3 --version &>/dev/null; then
+        PYTHON="python3"
+    elif command -v python &> /dev/null && python --version &>/dev/null; then
+        PYTHON="python"
+    else
+        echo -e "\033[0;31mRequired: Python 3 is not installed.\033[0m"
+        echo "Please install Python 3 from https://python.org and try again."
+        exit 1
+    fi
+    echo -e "  ${GREEN}Found $($PYTHON --version)${NC}"
+}
+
+check_python
 check_command git
 
 # Colors
@@ -225,7 +238,7 @@ echo -e "${BOLD}Creating wiki pages...${NC}"
 
 TODAY=$(date +%Y-%m-%d)
 
-python3 << PYEOF
+$PYTHON << PYEOF
 import os
 
 tool = "$TOOL"
@@ -396,7 +409,7 @@ if [[ " ${SELECTED_AGENTS[*]} " =~ "opencode" ]]; then
             read -p "" merge_oc
             if [ "$merge_oc" = "y" ] || [ "$merge_oc" = "Y" ]; then
                 # Simple merge: read existing, add commands, write back
-                python3 -c "
+                $PYTHON -c "
 import json, sys
 config_path = '$OC_CONFIG'
 wiki_commands = {
