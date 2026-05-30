@@ -269,7 +269,7 @@ if tool == "logseq":
     if write_file(os.path.join(pages_path, "Wiki___Schema.md"), schema):
         print(f"  Created: Wiki/Schema")
 
-    ns_links = "\n".join(f"\t- [[Wiki/{ns}]]" for ns in namespaces)
+    ns_links = ("\n\t- ".join(f"[[Wiki/{ns}]]" for ns in namespaces)).strip()
     dashboard = read_template("Dashboard.md")
     dashboard = dashboard.replace("{{NAMESPACE_LINKS}}", ns_links)
     dashboard = dashboard.replace("{{DATE}}", today)
