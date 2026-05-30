@@ -311,7 +311,7 @@ else:
 PYEOF
 
 # ===== STEP 9: Create llm-wiki.yml =====
-CONFIG_FILE="$wiki_path/llm-wiki.yml"
+CONFIG_FILE="$SCRIPT_DIR/llm-wiki.yml"
 
 build_agents_yaml() {
     local agents=""
